@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 root="$PWD"
-app="$root/dist/Document Studio.app"
+app="${DOCUMENT_STUDIO_APP_OUTPUT:-$root/dist/Document Studio.app}"
 version="$(/usr/bin/plutil -extract CFBundleShortVersionString raw -o - Resources/Info.plist)"
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid version' >&2; exit 1; }
 [[ -d "$app" ]] || { echo 'Build the app first.' >&2; exit 1; }
@@ -33,10 +33,10 @@ cp Sources/*.swift "$stage/source/Sources/"
 cp Resources/Info.plist Resources/AppIcon.icns "$stage/source/Resources/"
 cp Resources/VisualEditor/index.html Resources/VisualEditor/studio.css \
   Resources/VisualEditor/studio.js Resources/VisualEditor/renderer-core.js "$stage/source/Resources/VisualEditor/"
-for name in setup-engine.sh build-engine.sh build-app.sh make-icon.swift install-macos.sh package-release.sh; do
+for name in setup-engine.sh build-engine.sh build-app.sh make-icon.swift install-macos.sh package-release.sh check-updates.sh; do
   cp "scripts/$name" "$stage/source/scripts/"
 done
-cp tests/test_release_installer.py "$stage/source/tests/"
+cp tests/test_release_installer.py tests/verify_updates.swift tests/verify_update_controller.swift tests/verify_update_release.swift "$stage/source/tests/"
 mkdir -p "$stage/source/engine/src/main" "$stage/source/engine/licenses"
 /usr/bin/ditto engine/src/main/java "$stage/source/engine/src/main/java"
 cp engine/DEPENDENCIES.md engine/CHECKSUMS.sha256 "$stage/source/engine/"

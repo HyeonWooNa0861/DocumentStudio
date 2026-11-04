@@ -26,6 +26,7 @@ private struct DocumentRow {
 final class StudioAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSOpenSavePanelDelegate, NSTableViewDataSource, NSTableViewDelegate {
     private var window: NSWindow!
     private let engine = EngineClient()
+    private let updater = UpdateController()
     private var rows: [DocumentRow] = []
     private var editors: [StudioEditorSession] = []
     private let table = NSTableView()
@@ -51,6 +52,7 @@ final class StudioAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
         updateFolderLabel()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        updater.start()
         NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: nil, queue: .main) { [weak self] notification in
             guard let closing = notification.object as? NSWindow else { return }
             self?.editors.removeAll { $0.window === closing }
@@ -105,6 +107,7 @@ final class StudioAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "Document Studio에 관하여", action: #selector(showAbout), keyEquivalent: "")
+        updater.install(in: appMenu)
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Document Studio 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu

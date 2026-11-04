@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-project_root="$PWD"
-mkdir -p .build/module-cache-v2 dist
+project_root="$(pwd -P)"
+mkdir -p .build/module-cache-documentstudio dist
 if [[ ! -f engine/build/engine.jar || ! -x runtime/macos-arm64/bin/java ]]; then
   echo '먼저 bash scripts/setup-engine.sh 및 bash scripts/build-engine.sh를 실행하세요.' >&2
   exit 2
@@ -12,10 +12,11 @@ if [[ "$(uname -m)" != arm64 ]]; then
   exit 2
 fi
 xcrun swiftc -swift-version 5 -target arm64-apple-macosx13.0 -O \
-  -module-cache-path "$project_root/.build/module-cache-v2" Sources/*.swift \
+  -module-cache-path "$project_root/.build/module-cache-documentstudio" Sources/*.swift \
   -framework AppKit -framework WebKit -framework PDFKit \
   -o .build/DocumentStudio
-bundle="$project_root/dist/Document Studio.app"
+bundle="${DOCUMENT_STUDIO_APP_OUTPUT:-$project_root/dist/Document Studio.app}"
+mkdir -p "$(dirname "$bundle")"
 staging_root="$(mktemp -d "$project_root/.build/app-bundle-XXXXXX")"
 staged_bundle="$staging_root/Document Studio.app"
 mkdir -p "$staged_bundle/Contents/MacOS" "$staged_bundle/Contents/Resources/Engine/lib" "$staged_bundle/Contents/Resources/Runtime"
