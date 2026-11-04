@@ -36,7 +36,7 @@ cp Resources/VisualEditor/index.html Resources/VisualEditor/studio.css \
 for name in setup-engine.sh build-engine.sh build-app.sh make-icon.swift install-macos.sh package-release.sh check-updates.sh; do
   cp "scripts/$name" "$stage/source/scripts/"
 done
-cp tests/test_release_installer.py tests/verify_updates.swift tests/verify_update_controller.swift tests/verify_update_release.swift "$stage/source/tests/"
+cp tests/test_release_installer.py tests/test_update_command.py tests/verify_updates.swift tests/verify_update_controller.swift tests/verify_update_release.swift "$stage/source/tests/"
 mkdir -p "$stage/source/engine/src/main" "$stage/source/engine/licenses"
 /usr/bin/ditto engine/src/main/java "$stage/source/engine/src/main/java"
 cp engine/DEPENDENCIES.md engine/CHECKSUMS.sha256 "$stage/source/engine/"

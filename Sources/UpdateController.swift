@@ -5,6 +5,20 @@ final class UpdateController: NSObject {
     private let currentVersion: String?
     private let fetch: (@escaping (Result<ReleaseUpdate, Error>) -> Void) -> Void
     private let openURL: (URL) -> Void
+    private let copyText: (String) -> Bool
+    static let installCommand = """
+    (
+      set -e
+      if [ -x "$HOME/.local/bin/document-studio" ]; then
+        "$HOME/.local/bin/document-studio" update
+      else
+        install_dir="$(mktemp -d)"
+        trap 'rm -f "$install_dir/install-macos.sh"; rmdir "$install_dir"' EXIT
+        curl --fail --location --proto '=https' --retry 2 'https://github.com/HyeonWooNa0861/DocumentStudio/releases/latest/download/install-macos.sh' -o "$install_dir/install-macos.sh"
+        bash "$install_dir/install-macos.sh" --repo HyeonWooNa0861/DocumentStudio
+      fi
+    )
+    """
     private var checking = false
     private var timer: Timer?
     private var panel: NSPanel?
@@ -16,12 +30,17 @@ final class UpdateController: NSObject {
 
     init(defaults: UserDefaults = .standard,
          currentVersion: String? = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+         copyText: @escaping (String) -> Bool = {
+             NSPasteboard.general.clearContents()
+             return NSPasteboard.general.setString($0, forType: .string)
+         },
          openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
          fetch: @escaping (@escaping (Result<ReleaseUpdate, Error>) -> Void) -> Void = ReleaseUpdate.fetch) {
         self.defaults = defaults
         self.currentVersion = currentVersion
         self.fetch = fetch
         self.openURL = openURL
+        self.copyText = copyText
         super.init()
     }
 
@@ -84,7 +103,7 @@ final class UpdateController: NSObject {
     private func show(title: String, message: String, url: URL?) {
         panel?.close()
         releaseURL = url
-        let view = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 520, height: 360),
+        let view = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 600, height: 420),
                            styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered, defer: false)
         view.title = "업데이트 확인"
         view.isReleasedWhenClosed = false
@@ -105,9 +124,13 @@ final class UpdateController: NSObject {
         let close = NSButton(title: "닫기", target: self, action: #selector(closePanel))
         let buttons = NSStackView(views: [close])
         if url != nil {
+            buttons.addArrangedSubview(NSButton(title: "설치 명령어 복사", target: self, action: #selector(copyInstallCommand(_:))))
             buttons.addArrangedSubview(NSButton(title: "변경 내용 및 다운로드", target: self, action: #selector(openRelease)))
         }
-        let stack = NSStackView(views: [heading, scroll, buttons])
+        let hint = NSTextField(wrappingLabelWithString: url == nil ? "" : "문서를 저장하고 앱을 종료한 뒤, 복사한 명령어를 터미널에 붙여넣어 실행하세요.")
+        hint.font = .systemFont(ofSize: 12)
+        hint.textColor = .secondaryLabelColor
+        let stack = NSStackView(views: [heading, scroll, hint, buttons])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 14
@@ -118,6 +141,8 @@ final class UpdateController: NSObject {
             stack.trailingAnchor.constraint(equalTo: view.contentView!.trailingAnchor, constant: -20),
             stack.topAnchor.constraint(equalTo: view.contentView!.topAnchor, constant: 20),
             stack.bottomAnchor.constraint(equalTo: view.contentView!.bottomAnchor, constant: -20),
+            heading.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            hint.widthAnchor.constraint(equalTo: stack.widthAnchor),
             scroll.widthAnchor.constraint(equalTo: stack.widthAnchor),
             scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 180)
         ])
@@ -127,5 +152,8 @@ final class UpdateController: NSObject {
     }
 
     @objc private func openRelease() { if let url = releaseURL { openURL(url) } }
+    @objc private func copyInstallCommand(_ sender: NSButton) {
+        sender.title = copyText(Self.installCommand) ? "복사 완료" : "다시 복사하기"
+    }
     @objc private func closePanel() { panel?.close() }
 }
