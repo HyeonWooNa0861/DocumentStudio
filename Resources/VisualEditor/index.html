@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Document Studio 시각 편집기</title>
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <header class="toolbar" aria-label="문서 편집 도구">
+    <div class="brand-block">
+      <strong>Document Studio</strong>
+      <span>로컬 문서 미리보기 · 근사 배치</span>
+    </div>
+    <div class="tool-group history-group" aria-label="실행 취소">
+      <button id="undo-button" type="button" title="실행 취소 (⌘Z)" disabled>↶</button>
+      <button id="redo-button" type="button" title="다시 실행 (⇧⌘Z)" disabled>↷</button>
+    </div>
+    <div class="tool-group" aria-label="문단 추가 및 삭제">
+      <button id="insert-before" disabled>앞에 문단 추가</button>
+      <button id="insert-after" disabled>뒤에 문단 추가</button>
+      <button id="delete-paragraph" disabled>문단 삭제</button>
+    </div>
+    <div class="tool-group type-group" aria-label="선택 문단 서식">
+      <span class="scope-label">선택 문단</span>
+      <label>글꼴
+        <select id="font-family" disabled aria-label="선택 문단 글꼴"></select>
+      </label>
+      <label>크기
+        <input id="font-size" type="number" min="6" max="96" step="0.5" disabled aria-label="선택 문단 글꼴 크기">
+        <span>pt</span>
+      </label>
+    </div>
+    <div class="tool-group table-group" aria-label="선택 표 크기">
+      <span class="scope-label">선택 표</span>
+      <label>너비
+        <input id="table-width" type="number" min="36" max="1440" step="1" disabled aria-label="선택 표 너비">
+        <span>pt</span>
+      </label>
+      <label>최소 높이
+        <input id="table-height" type="number" min="1" max="2880" step="1" disabled aria-label="선택 표 최소 높이">
+        <span>pt</span>
+      </label>
+    </div>
+    <div class="tool-group zoom-group" aria-label="확대 축소">
+      <button id="zoom-out" type="button" title="축소">−</button>
+      <output id="zoom-value">100%</output>
+      <button id="zoom-in" type="button" title="확대">＋</button>
+    </div>
+    <button id="fallback-button" class="secondary-action" type="button">목록 편집</button>
+    <button id="save-button" class="primary-action" type="button">다른 이름으로 저장…</button>
+  </header>
+
+  <section id="notice" class="notice" hidden role="status"></section>
+  <main id="viewport" class="viewport">
+    <div id="empty-state" class="empty-state">
+      <div class="empty-sheet" aria-hidden="true"></div>
+      <strong>문서를 준비하고 있습니다</strong>
+      <span>내용은 이 Mac 안에서만 처리됩니다.</span>
+    </div>
+    <div id="pages" class="pages" aria-label="문서 페이지"></div>
+  </main>
+
+  <textarea id="canonical-editor" class="canonical-editor" aria-label="선택한 문단 편집" spellcheck="false" hidden></textarea>
+
+  <footer class="statusbar">
+    <span id="page-status">0쪽</span>
+    <span class="separator" aria-hidden="true"></span>
+    <span id="selection-status">선택 없음</span>
+    <span class="status-spacer"></span>
+    <span id="warning-status">경고 없음</span>
+    <span id="busy-status" aria-live="polite"></span>
+  </footer>
+
+  <script src="renderer-core.js"></script>
+  <script src="studio.js"></script>
+</body>
+</html>
