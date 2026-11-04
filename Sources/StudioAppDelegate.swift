@@ -242,7 +242,16 @@ final class StudioAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
         progress.controlSize = .small
         progress.isDisplayedWhenStopped = false
 
-        for view in [title, subtitle, controls, folderLabel, scroll, formatControls, actions, status, progress] {
+        let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let versionLabel = NSTextField(labelWithString: appVersion.map { "v\($0)" } ?? "버전 정보 없음")
+        versionLabel.font = .systemFont(ofSize: 11)
+        versionLabel.textColor = .secondaryLabelColor
+        versionLabel.alignment = .right
+        versionLabel.setAccessibilityIdentifier("app-version")
+        versionLabel.setAccessibilityLabel("앱 버전 \(appVersion ?? "정보 없음")")
+        versionLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        for view in [title, subtitle, controls, folderLabel, scroll, formatControls, actions, status, progress, versionLabel] {
             view.translatesAutoresizingMaskIntoConstraints = false
             root.addSubview(view)
         }
@@ -262,7 +271,9 @@ final class StudioAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
             status.topAnchor.constraint(equalTo: actions.bottomAnchor, constant: 12), status.leadingAnchor.constraint(equalTo: title.leadingAnchor),
             status.trailingAnchor.constraint(equalTo: progress.leadingAnchor, constant: -12), status.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -24),
             status.heightAnchor.constraint(greaterThanOrEqualToConstant: 40), progress.centerYAnchor.constraint(equalTo: status.centerYAnchor),
-            progress.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -30), progress.widthAnchor.constraint(equalToConstant: 18)
+            progress.trailingAnchor.constraint(equalTo: versionLabel.leadingAnchor, constant: -12), progress.widthAnchor.constraint(equalToConstant: 18),
+            versionLabel.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -28),
+            versionLabel.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -24)
         ])
         updateButtons()
     }
